@@ -1,3 +1,7 @@
+# Unit tests for DSA3C coursework
+
+Here there is information on how to structure your code and the coursework repository.
+
 ## Getting started
 
 Go to GitHub and select the option to start a new repository. Name it DSA3C_ML_21-22 and do not add to it any of the files that GitHub suggests (i.e. do not add `README.md`, `.gitignore` and `LICENCE`). After clicking **Create repository** scroll down and find the **Import code** option. Select this and then in the url text field paste `https://github.com/mazaja/CompromiseCourseworkTests` and select **Begin import**. Now you can clone the new repository to your local machine and start working. **You should develop your code for this assignment in the `src` folder of the repository**.
