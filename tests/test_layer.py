@@ -26,7 +26,7 @@ class TestLayer(unittest.TestCase):
         self.assertTrue( (output == np.array([5.0, 5.0, 5.0, 5.0])).all() )
 
     def test_constructor_setting(self):
-        M = np.ones([3,4])
+        M = np.ones([4,3])
         B = 2*np.ones(4)
         idL = Layer(M, B, identity)
         self.assertTrue((idL.getMatrix() == M).all())
@@ -34,13 +34,18 @@ class TestLayer(unittest.TestCase):
         self.assertTrue(idL.getFunction() == identity)
     
     def test_constructor_copying(self):
-        M = np.ones([3,4])
+        M = np.ones([4,3])
         B = 2*np.ones(4)
         idL = Layer(M, B, identity)
         M[0][0] = 10.0
         B[0] = 10.0
         self.assertTrue(not (idL.getMatrix() == M).all())
         self.assertTrue(not (idL.getBiasVector() == B).all())
+    
+    def test_constructor_exception(self):
+        M = np.ones([3,4])
+        B = np.ones(5)
+        self.assertRaises(ValueError , Layer, M, B, identity)
 
 if __name__ == '__main__':
     unittest.main()

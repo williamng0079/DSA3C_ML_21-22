@@ -47,11 +47,6 @@ class TestLayer(unittest.TestCase):
         Ms = [M1, M2]
         self.assertRaises(ValueError , NeuralNetwork, Ms, Bs, Fs) # not enough matrices
         Ms = [M1, M2, M3]
-        B2 = np.ones(4)
-        Bs = [B1, B2, B3]
-        self.assertRaises(ValueError , NeuralNetwork, Ms, Bs, Fs) # bias does not match matrix
-        B2 = np.ones(5)
-        Bs = [B1, B2, B3]
         M2 = np.ones([4,2])
         Ms = [M1, M2, M3]
         self.assertRaises(ValueError , NeuralNetwork, Ms, Bs, Fs) # mismatch matrix sizes
