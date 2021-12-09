@@ -34,7 +34,8 @@ class Layer:
         return self.biases
 
     def getFunction(self):
-        pass
+        FunctionLists = "Functions: Sigmoid, ReLU"
+        return FunctionLists
 
     def forward(self, inputArray):
         output = self.activationFunc(np.dot(inputArray, self.weightArray) + self.biases) # forwardfeeding process (method of traversing across layers) Matrix calculation
@@ -44,32 +45,42 @@ class NeuralNetwork:
     def __init__(self, inputArray):
         self.input = inputArray
         self.firstLayer = Layer(27, 21, 0)
-        
-        #self.secondLayer = 
+        self.secondLayer = Layer(21, 21, 0)
+        self.outputLayer = Layer(21, 27, 0)
     
     def getLayers(self):
         pass
         
     def propagate(self):
         self.firstOutput = self.firstLayer.forward(self.input)
-        return self.firstOutput
+        self.secondOutput = self.secondLayer.forward(self.firstOutput)
+        self.output = self.outputLayer.forward(self.secondOutput)
+        return self.output
 
 class NNPlayer:
     @staticmethod
     def getSpecs():
-        return (1,1)
+        return (27,27)
         
-    def __init__(self, Ms, Bs, Fs):
-        pass
+    def __init__(self):#, Ms, Bs, Fs):
+        
+        self.allMoves = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2], [0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [1, 1, 0], [1, 1, 1], [1, 1, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2], [2, 1, 0], [2, 1, 1], [2, 1, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]
 
     def getNN(self):
         pass
 
-    def play(self, ownB, oppB, ownS, oppS, turn, gLen, pips):
-        pass
+    def play(self):#, ownB, oppB, ownS, oppS, turn, gLen, pips):
+        # All possible moves the NN player can choose from:
+        BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
+        diffarray = np.asarray(BoardDiff)
+        
+        NNtest = NeuralNetwork(diffarray)
+        
+        NNoutput = NNtest.propagate()
 
-BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
-diffarray = np.asarray(BoardDiff)
+        selectedmove = self.allMoves[NNoutput.argmax()]
+        return selectedmove
 
-NNtest = NeuralNetwork(diffarray)
-print(NNtest.propagate())
+
+test = NNPlayer()
+print(test.play())
