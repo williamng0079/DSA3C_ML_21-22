@@ -17,7 +17,7 @@ class Layer:
             return x * 1                        # no function applied
 
         if self.functionSelector == 1:
-            return max(0.0, x)                  # ReLU function
+            return x.clip(min=0)                 # ReLU function
 
         if self.functionSelector == 2:
             z = np.exp(-x)                      # Sigmoid function
@@ -68,7 +68,7 @@ class NNPlayer:
     def play(self, ownB, oppB, ownS, oppS, turn, gLen, pips):
         pass
 
-BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]
+BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
 diffarray = np.asarray(BoardDiff)
 
 NNtest = NeuralNetwork(diffarray)
