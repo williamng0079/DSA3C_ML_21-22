@@ -14,7 +14,7 @@ class Layer:
     
     def activationFunc(self, x):
         if self.functionSelector == 0:
-            return x * 1                        # no function applied
+            return x                        # no function applied
 
         if self.functionSelector == 1:
             return x.clip(min=0)                 # ReLU function
@@ -24,8 +24,7 @@ class Layer:
             sigmoid = 1 / (1 + z)   
             return sigmoid
         else:
-            print("no function selected")
-            return x * 1
+            return x 
 
     def getMatrix(self):
         return self.weightArray
@@ -69,9 +68,13 @@ class NNPlayer:
     def getNN(self):
         pass
 
-    def play(self):#, ownB, oppB, ownS, oppS, turn, gLen, pips):
+    def play(self, ownB, oppB, ownS, oppS, turn, gLen, pips):
         # All possible moves the NN player can choose from:
-        BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
+        #BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
+        ownBoardArray = np.array(ownB).flatten() # converts to 1D array for the ease of calculation 
+        oppBoardArray = np.array(oppB).flatten()
+        BoardDiff = np.subtract(ownBoardArray, oppBoardArray) # (calculate the differences between red and green board and generates 27 input nodes)
+        
         diffarray = np.asarray(BoardDiff)
         
         NNtest = NeuralNetwork(diffarray)
@@ -82,5 +85,5 @@ class NNPlayer:
         return selectedmove
 
 
-test = NNPlayer()
-print(test.play())
+#test = NNPlayer()
+#print(test.play())

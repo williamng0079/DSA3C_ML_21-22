@@ -3,6 +3,7 @@ import random
 import re
 import math
 
+from NNPlay import NNPlayer
 
 class AbstractPlayer:
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
@@ -330,6 +331,8 @@ class CompromiseGame:
                 self.greenPips[p[0]][p[1]][p[2]] += 1
             for p in redplacing:
                 self.redPips[p[0]][p[1]][p[2]] += 1
+       
+    
 
     def getMoves(self):
         if self.type == "g":
@@ -521,19 +524,19 @@ class CompromiseGame:
 
 
 if __name__ == "__main__":
-    pA = HumanPlayer()
-    pB = SmartGreedyPlayer()
-    g = CompromiseGame(pA, pB, 30, 5)
-    curses.wrapper(g.fancyPlay)
+    pA = NNPlayer()
+    pB = GreedyPlayer()
+    g = CompromiseGame(pA, pB, 30, 10)
+    #curses.wrapper(g.fancyPlay)
 
-    # score = [0,0,0]
-    # for i in range(100):
-        # g.resetGame()
-        # res = g.play()
-        # if res[0] > res[1]:
-            # score[0] += 1
-        # elif res[1] > res[0]:
-            # score[2] += 1
-        # else:
-            # score[1] += 1
-    # print(score)
+    score = [0,0,0]
+    for i in range(100):
+        g.resetGame()
+        res = g.play()
+        if res[0] > res[1]:
+            score[0] += 1
+        elif res[1] > res[0]:
+            score[2] += 1
+        else:
+            score[1] += 1
+    print(score)
