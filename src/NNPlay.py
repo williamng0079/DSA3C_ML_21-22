@@ -1,14 +1,16 @@
 import numpy as np
 import random
 
+from numpy.lib.function_base import diff
+
 # The tests can be run by navigating to the tests folder and executing:
 #   python -m unittest discover
 
 class Layer:
-    def __init__(self, activators, layer_neurons, f): # layer constructor
+    def __init__(self, n_inputs, neurons, f): # layer constructor
        
-        self.weightArray = 0.01 * np.random.randn(activators, layer_neurons) # create a 2d array (consist of random numbers) from number of layer neurons x number of activators to simulate an weight matrix
-        self.biases = np.zeros((1, layer_neurons))        # initialise the bias array with values of zero for the time being
+        self.weightArray = np.random.rand(neurons, n_inputs) * 2 - 1# create a matrix (consist of random numbers) from number of neurons x number of activators to simulate an weight matrix
+        self.biases = np.random.rand(neurons, 1) * 2 - 1       # initialise the bias array with values of zero for the time being
         self.functionSelector = f             
 
     
@@ -17,12 +19,13 @@ class Layer:
             return x                        # no function applied
 
         if self.functionSelector == 1:
-            return x.clip(min=0)                 # ReLU function
+            ReLU = x.clip(min = 0)
+            return ReLU                          # ReLU function
 
         if self.functionSelector == 2:
             z = np.exp(-x)                      # Sigmoid function
-            sigmoid = 1 / (1 + z)   
-            return sigmoid
+            Sigmoid = 1 / (1 + z)   
+            return Sigmoid
         else:
             return x 
 
@@ -33,28 +36,58 @@ class Layer:
         return self.biases
 
     def getFunction(self):
-        FunctionLists = "Functions: Sigmoid, ReLU"
-        return FunctionLists
+        if self.functionSelector == 1:
+            currentFunc = "ReLU"
+            return currentFunc
+        
+        elif self.functionSelector == 2:
+            currentFunc = "Sigmoid"
+            return currentFunc
+        
+        else:
+            currentFunc = "no function applied"
+            return currentFunc
 
     def forward(self, inputArray):
-        output = self.activationFunc(np.dot(inputArray, self.weightArray) + self.biases) # forwardfeeding process (method of traversing across layers) Matrix calculation
-        return output
+        outputArray = self.activationFunc(np.matmul(self.weightArray, inputArray) + self.biases) # forwardfeeding process (method of traversing across layers) Matrix calculation
+        return outputArray
 
 class NeuralNetwork:
-    def __init__(self, inputArray):
-        self.input = inputArray
-        self.firstLayer = Layer(27, 21, 0)
-        self.secondLayer = Layer(21, 21, 0)
-        self.outputLayer = Layer(21, 27, 0)
-    
+    def __init__(self):
+        
+        self._weights = []
+        self._biases = []
+        self._functions = []
+        self._layers = []
+        self.firstLayer = Layer(27, 21, 1)
+        self.secondLayer = Layer(21, 21, 1)
+        self.outputLayer = Layer(21, 27, 1)
+
+        self._weights.append(self.firstLayer.getMatrix())
+        self._weights.append(self.secondLayer.getMatrix())
+        self._weights.append(self.outputLayer.getMatrix())
+
+        self._biases.append(self.firstLayer.getBiasVector())
+        self._biases.append(self.secondLayer.getBiasVector())
+        self._biases.append(self.outputLayer.getBiasVector())
+
+        self._functions.append(self.firstLayer.getFunction())
+        self._functions.append(self.secondLayer.getFunction())
+        self._functions.append(self.outputLayer.getFunction())
+
     def getLayers(self):
         pass
         
-    def propagate(self):
-        self.firstOutput = self.firstLayer.forward(self.input)
+    def propagate(self, inputArray):
+        self.firstOutput = self.firstLayer.forward(inputArray)
         self.secondOutput = self.secondLayer.forward(self.firstOutput)
-        self.output = self.outputLayer.forward(self.secondOutput)
-        return self.output
+        self.resultOutput = self.outputLayer.forward(self.secondOutput)
+
+        #print(self._weights)
+        #print(self._biases)
+        #print(self._functions)
+
+        return self.resultOutput
 
 class NNPlayer:
     @staticmethod
@@ -62,26 +95,32 @@ class NNPlayer:
         return (27,27)
         
     def __init__(self):#, Ms, Bs, Fs):
-        
+        # intialise all the possible choices
         self.allMoves = [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2], [0, 2, 0], [0, 2, 1], [0, 2, 2], [1, 0, 0], [1, 0, 1], [1, 0, 2], [1, 1, 0], [1, 1, 1], [1, 1, 2], [1, 2, 0], [1, 2, 1], [1, 2, 2], [2, 0, 0], [2, 0, 1], [2, 0, 2], [2, 1, 0], [2, 1, 1], [2, 1, 2], [2, 2, 0], [2, 2, 1], [2, 2, 2]]
+        self.NNplayer1 = NeuralNetwork()
 
     def getNN(self):
         pass
 
     def play(self, ownB, oppB, ownS, oppS, turn, gLen, pips):
-        # All possible moves the NN player can choose from:
+
         #BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
         ownBoardArray = np.array(ownB).flatten() # converts to 1D array for the ease of calculation 
         oppBoardArray = np.array(oppB).flatten()
         BoardDiff = np.subtract(ownBoardArray, oppBoardArray) # (calculate the differences between red and green board and generates 27 input nodes)
         
         diffarray = np.asarray(BoardDiff)
+        aligned = diffarray.reshape((-1, 1))
         
-        NNtest = NeuralNetwork(diffarray)
         
-        NNoutput = NNtest.propagate()
-
+        
+        NNoutput = self.NNplayer1.propagate(aligned)
+        
+        reshapedOutput = NNoutput.reshape(-1)
         selectedmove = self.allMoves[NNoutput.argmax()]
+        
+        print("List of decisions:", reshapedOutput)
+        print("Move Selected:", selectedmove)
         return selectedmove
 
 
