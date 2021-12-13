@@ -1,16 +1,22 @@
 import numpy as np
 import random
 
-from numpy.lib.function_base import diff
+
 
 # The tests can be run by navigating to the tests folder and executing:
 #   python -m unittest discover
 
+
+
+
+
+
+
 class Layer:
     def __init__(self, n_inputs, neurons, f): # layer constructor
        
-        self.weightArray = np.random.rand(neurons, n_inputs) * 2 - 1# create a matrix (consist of random numbers) from number of neurons x number of activators to simulate an weight matrix
-        self.biases = np.random.rand(neurons, 1) * 2 - 1       # initialise the bias array with values of zero for the time being
+        self.weightArray = np.random.rand(neurons, n_inputs) * 2 - 1 # create a matrix (consist of random numbers) from number of neurons x number of activators to simulate an weight matrix
+        self.biases = np.random.rand(neurons, 1) * 2 - 1     # initialise the bias array with values of zero for the time being
         self.functionSelector = f             
 
     
@@ -18,16 +24,19 @@ class Layer:
         if self.functionSelector == 0:
             return x                        # no function applied
 
-        if self.functionSelector == 1:
+        elif self.functionSelector == 1:
             ReLU = x.clip(min = 0)
             return ReLU                          # ReLU function
 
-        if self.functionSelector == 2:
-            z = np.exp(-x)                      # Sigmoid function
-            Sigmoid = 1 / (1 + z)   
-            return Sigmoid
+        elif self.functionSelector == 2:         # Sigmoid
+            return 1/(1+np.exp(-x))
+
+        elif self.functionSelector == 3:            # Leaky ReLU
+            return np.where(x > 0, x, x * 0.01)     
+        
         else:
             return x 
+        
 
     def getMatrix(self):
         return self.weightArray
@@ -43,6 +52,10 @@ class Layer:
         elif self.functionSelector == 2:
             currentFunc = "Sigmoid"
             return currentFunc
+
+        elif self.functionSelector == 3:
+            currentFunc = "Leaky ReLU"
+            return currentFunc
         
         else:
             currentFunc = "no function applied"
@@ -54,14 +67,14 @@ class Layer:
 
 class NeuralNetwork:
     def __init__(self):
-        
+        self._rewards = 0
         self._weights = []
         self._biases = []
         self._functions = []
         self._layers = []
-        self.firstLayer = Layer(27, 21, 1)
-        self.secondLayer = Layer(21, 21, 1)
-        self.outputLayer = Layer(21, 27, 1)
+        self.firstLayer = Layer(27, 25, 3)
+        self.secondLayer = Layer(25, 25, 3)
+        self.outputLayer = Layer(25, 27, 3)
 
         self._weights.append(self.firstLayer.getMatrix())
         self._weights.append(self.secondLayer.getMatrix())
@@ -76,18 +89,19 @@ class NeuralNetwork:
         self._functions.append(self.outputLayer.getFunction())
 
     def getLayers(self):
-        pass
-        
+        self._layers = [self._weights, self._biases, self._functions]
+        return self._layers
+
+
     def propagate(self, inputArray):
         self.firstOutput = self.firstLayer.forward(inputArray)
         self.secondOutput = self.secondLayer.forward(self.firstOutput)
         self.resultOutput = self.outputLayer.forward(self.secondOutput)
 
-        #print(self._weights)
-        #print(self._biases)
-        #print(self._functions)
-
         return self.resultOutput
+    
+    
+
 
 class NNPlayer:
     @staticmethod
@@ -100,14 +114,18 @@ class NNPlayer:
         self.NNplayer1 = NeuralNetwork()
 
     def getNN(self):
-        pass
+        return self.NNplayer1.getLayers()
+
+    def give_rewards(self, r):
+        self._reward = r
+        return self._reward
 
     def play(self, ownB, oppB, ownS, oppS, turn, gLen, pips):
 
         #BoardDiff = [-1, -1, -2,  0,  0, -1, -1,  0,  2, -1,  1,  0,  0,  1,  0,  2, -1,  1,  0, -1, -3,  1, -1, 3, 0,  0,  2]   #test nn calculation
         ownBoardArray = np.array(ownB).flatten() # converts to 1D array for the ease of calculation 
         oppBoardArray = np.array(oppB).flatten()
-        BoardDiff = np.subtract(ownBoardArray, oppBoardArray) # (calculate the differences between red and green board and generates 27 input nodes)
+        BoardDiff = np.subtract(oppBoardArray, ownBoardArray) # (calculate the differences between red and green board and generates 27 input nodes)
         
         diffarray = np.asarray(BoardDiff)
         aligned = diffarray.reshape((-1, 1))
@@ -116,11 +134,13 @@ class NNPlayer:
         
         NNoutput = self.NNplayer1.propagate(aligned)
         
-        reshapedOutput = NNoutput.reshape(-1)
-        selectedmove = self.allMoves[NNoutput.argmax()]
+        reshapedOutput = NNoutput
         
-        print("List of decisions:", reshapedOutput)
-        print("Move Selected:", selectedmove)
+        selectedmove = self.allMoves[NNoutput.argmax()]
+        #print("List of decisions:", reshapedOutput)
+        #print("Move Selected:", selectedmove)
+        #print(self.getNN())
+
         return selectedmove
 
 
