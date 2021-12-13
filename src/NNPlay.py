@@ -7,11 +7,6 @@ import random
 #   python -m unittest discover
 
 
-
-
-
-
-
 class Layer:
     def __init__(self, n_inputs, neurons, f): # layer constructor
        
@@ -37,7 +32,6 @@ class Layer:
         else:
             return x 
         
-
     def getMatrix(self):
         return self.weightArray
 
@@ -136,7 +130,7 @@ class NNPlayer:
         
         reshapedOutput = NNoutput
         
-        selectedmove = self.allMoves[NNoutput.argmax()]
+        selectedmove = self.allMoves[NNoutput.argmax()]     # use the position of output neuron with highest value as index to decide the move to choose from the pool
         #print("List of decisions:", reshapedOutput)
         #print("Move Selected:", selectedmove)
         #print(self.getNN())
