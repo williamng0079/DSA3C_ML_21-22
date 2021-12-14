@@ -532,7 +532,7 @@ if __name__ == "__main__":
     #curses.wrapper(g.fancyPlay)
 
     score = [0,0,0]
-    for i in range(100):
+    for i in range(10):
         g.resetGame()
         res = g.play()
         if res[0] > res[1]:

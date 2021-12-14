@@ -14,7 +14,7 @@ class Training():
         self._score = [0, 0]
         self.totalReward = 0
         self.nb_games = 30
-        self.g = CompromiseGame(player, AbstractPlayer(), 30, 1)
+        self.g = CompromiseGame(player, GreedyPlayer(), 30, 1)
 
     # Fitness calculation of the player
     def fitness_calc(self, r):

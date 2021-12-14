@@ -16,12 +16,12 @@ class Layer:
 
     
     def activationFunc(self, x):
-        if self.functionSelector == 0:
-            return x                        # no function applied
-
+        if self.functionSelector == 0:          # Softmax processed later
+            return x
+                                   
         elif self.functionSelector == 1:
             ReLU = x.clip(min = 0)
-            return ReLU                          # ReLU function
+            return ReLU                          # ReLU 
 
         elif self.functionSelector == 2:         # Sigmoid
             return 1/(1+np.exp(-x))
@@ -31,7 +31,12 @@ class Layer:
         
         else:
             return x 
-        
+
+    def output_layer_func(self, x):                   # softmax function 
+        m = np.exp(x)
+        return m/m.sum(len(x.shape)-1)
+
+
     def getMatrix(self):
         return self.weightArray
 
@@ -39,7 +44,11 @@ class Layer:
         return self.biases
 
     def getFunction(self):
-        if self.functionSelector == 1:
+        if self.functionSelector == 0:
+            currentFunc = "Softmax"
+            return currentFunc
+
+        elif self.functionSelector == 1:
             currentFunc = "ReLU"
             return currentFunc
         
@@ -56,8 +65,9 @@ class Layer:
             return currentFunc
 
     def forward(self, inputArray):
-        outputArray = self.activationFunc(np.matmul(self.weightArray, inputArray) + self.biases) # forwardfeeding process (method of traversing across layers) Matrix calculation
-        return outputArray
+        outputArray = (np.matmul(self.weightArray, inputArray) + self.biases) # forwardfeeding process (method of traversing across layers) Matrix calculation
+        activated_output = self.activationFunc(outputArray)
+        return activated_output
 
 class NeuralNetwork:
     def __init__(self):
@@ -68,7 +78,7 @@ class NeuralNetwork:
         self._layers = []
         self.firstLayer = Layer(27, 25, 3)
         self.secondLayer = Layer(25, 25, 3)
-        self.outputLayer = Layer(25, 27, 3)
+        self.outputLayer = Layer(25, 27, 0)
 
         self._weights.append(self.firstLayer.getMatrix())
         self._weights.append(self.secondLayer.getMatrix())
@@ -91,8 +101,8 @@ class NeuralNetwork:
         self.firstOutput = self.firstLayer.forward(inputArray)
         self.secondOutput = self.secondLayer.forward(self.firstOutput)
         self.resultOutput = self.outputLayer.forward(self.secondOutput)
-
-        return self.resultOutput
+        softmax_activated = self.outputLayer.output_layer_func(self.resultOutput.reshape(-1))
+        return softmax_activated
     
     
 
@@ -128,11 +138,15 @@ class NNPlayer:
         
         NNoutput = self.NNplayer1.propagate(aligned)
         
-        reshapedOutput = NNoutput
+    
         
         selectedmove = self.allMoves[NNoutput.argmax()]     # use the position of output neuron with highest value as index to decide the move to choose from the pool
-        #print("List of decisions:", reshapedOutput)
+        #print("List of decisions:", NNoutput)
         #print("Move Selected:", selectedmove)
+
+        softmax_check = sum(NNoutput)                       # check if softmax is working as intended
+        #print(softmax_check)
+
         #print(self.getNN())
 
         return selectedmove
