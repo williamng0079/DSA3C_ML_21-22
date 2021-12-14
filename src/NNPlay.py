@@ -16,8 +16,11 @@ class Layer:
 
     
     def activationFunc(self, x):
-        if self.functionSelector == 0:          # Softmax processed later
-            return x
+        
+        if self.functionSelector == 0:          # Softmax (only applicable in output layer)
+            m = np.exp(x)
+            return m/m.sum(len(x.shape)-1)
+            
                                    
         elif self.functionSelector == 1:
             ReLU = x.clip(min = 0)
@@ -31,10 +34,7 @@ class Layer:
         
         else:
             return x 
-
-    def output_layer_func(self, x):                   # softmax function 
-        m = np.exp(x)
-        return m/m.sum(len(x.shape)-1)
+          
 
 
     def getMatrix(self):
@@ -66,8 +66,12 @@ class Layer:
 
     def forward(self, inputArray):
         outputArray = (np.matmul(self.weightArray, inputArray) + self.biases) # forwardfeeding process (method of traversing across layers) Matrix calculation
-        activated_output = self.activationFunc(outputArray)
-        return activated_output
+        if outputArray.shape[0] == 27:                        # check if the layer is the output layer
+            softmax_activated = self.activationFunc(outputArray.reshape(-1))
+            return softmax_activated
+        else:
+            activated_output = self.activationFunc(outputArray)
+            return activated_output
 
 class NeuralNetwork:
     def __init__(self):
@@ -101,8 +105,8 @@ class NeuralNetwork:
         self.firstOutput = self.firstLayer.forward(inputArray)
         self.secondOutput = self.secondLayer.forward(self.firstOutput)
         self.resultOutput = self.outputLayer.forward(self.secondOutput)
-        softmax_activated = self.outputLayer.output_layer_func(self.resultOutput.reshape(-1))
-        return softmax_activated
+        
+        return self.resultOutput
     
     
 
@@ -144,7 +148,7 @@ class NNPlayer:
         #print("List of decisions:", NNoutput)
         #print("Move Selected:", selectedmove)
 
-        softmax_check = sum(NNoutput)                       # check if softmax is working as intended
+        softmax_check = sum(NNoutput)                       # check if softmax is working as intended, sum should be 1
         #print(softmax_check)
 
         #print(self.getNN())
