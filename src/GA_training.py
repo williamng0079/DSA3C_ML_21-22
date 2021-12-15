@@ -1,11 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 from CompromiseGame import CompromiseGame, AbstractPlayer, GreedyPlayer, SmartGreedyPlayer, DeterminedPlayer
 
 # This code has been reorganised by merging NNPlay.py to ensure mutation and population rearranging features work properly
 # Also moving code into one place makes following the code easier.
 
+# problem encountered: during training, wins rates are often recurring decimals
+# casue of issue: number of game played (30)
+# solution: change the number of games from 30 to 50 for each player for future training 
+# DONE
+
+
+
+# observations: test training 2: avg population win rate progress: 88 at 1489th generation (pop size = 250, 30 games each)
+
+
+# Todo: Write best player genetic into a txt file
+#       Make best player file and do unittests 
+#       Restablish fitness func
+#       Write report
+#       Diplay more information on graph (include best and worst rate )
+#       Train against greedyplayer
+#       Experiment with initiating the bias value with zeros and mutate from it
+
+# Notes: np.random.rand() ranges from 0 to 1
+#       
 
 class NeuralNetwork():
 
@@ -16,7 +37,7 @@ class NeuralNetwork():
 
         if (not copy):                                              # For mutation, if its a copy (ie, for reinjecting the population), it will not generate a new sets of layers with random values
             self.first_weightArray = np.random.rand(54, 27) * 2 - 1 # Create matrix for layers (consist of random numbers) from number of neurons x number of activators to simulate an weight matrix
-            self._weights.append(self.first_weightArray)
+            self._weights.append(self.first_weightArray)            # * 2 - 1 ensures some values are negative
             
             self.first_biasArray = np.random.rand(54, 1) * 2 - 1
             self._biases.append(self.first_biasArray)
@@ -64,26 +85,26 @@ class NeuralNetwork():
 
         return output
 
-    def give_rewards(self, r):
-        self._rewards = r
+    def give_rewards(self, r):                                  # used to track each players end reward count, used as an indicator to sort the population from best to worst later on
+        self._rewards = r                   
         return self._rewards
 
 
     def mutate(self, mutate_player = True):
         mutation_prob =  0.01                                   # set the probability of a mutation ocurring to 1%
-        new_player = NeuralNetwork(copy = True) 
+        new_player = NeuralNetwork(copy = True)                 # create new players with blank weights and biases
 
     
             # copy the parameter of existing player
-        for w in self._weights:                                 # iterate through the list of weights and apply mutation for the new player
-            w_mutationArray = np.random.rand(w.shape[0], w.shape[1]) # generate a matrix with the same weight dimension 
-            apply_mutation = np.where(w_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2 , 0)  # mutation condition: when the element inside the matrix is smaller than the mutation prob, change to that element will occur, otherwise set the element to 0 if the condition is not met
-            updated_w = w + apply_mutation
+        for w in self._weights:                                 # iterate through the list of parent weights and apply mutation to generate new player
+            w_mutationArray = np.random.rand(w.shape[0], w.shape[1]) # generate a matrix with the same weight dimension as the parent
+            apply_mutation = np.where(w_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2 , 0)  # mutation condition: any inside the random matrix is smaller than the mutation prob (0.01), change to that value will occur, otherwise sets the values in the matrix to 0 if the condition is not met
+            updated_w = w + apply_mutation                      # add the matrix of mutated value (mask) to the parent matrix
 
-            new_player._weights.append(updated_w)               # add the mutated weight the new player
+            new_player._weights.append(updated_w)               # add the mutated weights to the new player
 
-        for b in self._biases:                                  # mutate the bias value fot the new player
-            b_mutationArray = np.random.rand(b.shape[0], 1)     # generate array with same bias dimension
+        for b in self._biases:                                  # mutate the bias value for the new player
+            b_mutationArray = np.random.rand(b.shape[0], 1)     # same process as above
             apply_b_mutation = np.where(b_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2, 0)
             updated_b = b + apply_b_mutation
 
@@ -113,7 +134,9 @@ class NeuralNetwork():
 
         return selectedmove
 
-
+    def getNN(self):
+        NN = [self._weights, self._biases]
+        return NN
 
 class Training():
     # GA Training...
@@ -121,11 +144,11 @@ class Training():
     def __init__(self, player):
         self.player = player
         self.totalReward = 0
-        self.nb_games = 30
+        self.nb_games = 50
         self.g = CompromiseGame(player, AbstractPlayer(), 30, 10)
 
 
-    def game_simulation(self): # simulate 30 games for each NNplayer in the population
+    def game_simulation(self): # simulate 50 games for each NNplayer in the population
     
         for y in range(self.nb_games):
             self.g.resetGame()
@@ -172,37 +195,41 @@ def run_simulation_with_mutation():
         rewards.append(i.game_simulation())
         indiv_fitnesses.append(i.get_fitness())
 
-    population.sort(key = lambda player: player._rewards, reverse = True)               # sort the population based on the rewards gained by each NNPlayer
+    population.sort(key = lambda player: player._rewards, reverse = True)               # sort the population from best to worst based on the rewards gained by each NNPlayer
     
     sorted_fitness = sorted(indiv_fitnesses)
     avg_fitness = sum(indiv_fitnesses) / number_of_NNplayer
 
     #print(sorted_fitness)
-    print("Average fitness of the generation:", avg_fitness)
-    print("Best fitness of this generation was:", str(sorted_fitness[-1]))
-    print("The best score was:" + str(population[0]._rewards) + "/30")
-    print("The worst score was:" + str(population[-1]._rewards) + "/30")
+    print("Average win rate of the generation:", avg_fitness)
+    print("Best player of this generation achieved:", str(sorted_fitness[-1]))
+    print("The best score was:" + str(population[0]._rewards) + "/50")
+    print("The worst score was:" + str(population[-1]._rewards) + "/50")
     #plt.hist(rewards, bins = number_of_NNplayer)
     #plt.plot(rewards)
     #plt.show()
+    
+    if (avg_fitness >= 55):                                                             # write the best player genetic of a population when it reaches above a certain threshold
+        with open("best_player_NN.txt", "w") as bestGene:
+            json.dump(population[0].getNN() , bestGene)
 
     return avg_fitness
 
 
 def rearrange_population():
     global population
-    percent_to_keep = 0.1       # we keep 10% of the best players according to their individual fitness value from a generation
+    percent_to_keep = 0.1       # we keep 10% of the best players according to their reward value from a generation
 
     nb_players_toKeep = int(percent_to_keep * len(population))
     new_population = population[:nb_players_toKeep]             # we shred the population count of unwanted players, and keep the first 10% (best player after sort)
     
     injected_players = []
-    for i in range(len(population) - nb_players_toKeep):
-        parent_player = new_population[i % nb_players_toKeep]       # use the modulus operator to iterate through the list of best players and use their genetic info as parents
-        child_player = parent_player.mutate()                       # mutate the 
-        injected_players.append(child_player)                       # fill the blank with mutated player
+    for i in range(len(population) - nb_players_toKeep):            # in this case 250 - 25 = 225
+        parent_player = new_population[i % nb_players_toKeep]       # use the modulus operator to iterate through the list of best players index 0 to index 25 over and over and use their genetic info as parents to mutate
+        child_player = parent_player.mutate()                       # produce child players with the mutated parent genetic values(weights and biases)
+        injected_players.append(child_player)                       # repopulated the 90% with mutated player
     
-    population = new_population + injected_players
+    population = new_population + injected_players                  # combine the top 10% from previous gen and 90% of mutated players to form new population for the next generation
 
 if __name__ == "__main__":
 
@@ -211,17 +238,17 @@ if __name__ == "__main__":
     
     number_of_NNplayer = 250
 
-    avg_fit = []
+    avg_winrate = []
 
     restart_simulation()
     #run_simulation_with_mutation()
-    for g in range(1500):
+    for g in range(15):
         generation = g + 1
         print("Generation:", generation)
-        avg_fit.append(run_simulation_with_mutation())
+        avg_winrate.append(run_simulation_with_mutation())
         rearrange_population()
         print("\n")
 
-    plt.plot(list(range(generation)), avg_fit, 'b', label = "Average Win Percentage")
+    plt.plot(list(range(generation)), avg_winrate, 'b', label = "Average Win Percentage")
     plt.legend()
     plt.show()
