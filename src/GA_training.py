@@ -295,7 +295,7 @@ if __name__ == "__main__":
 
     restart_simulation()
     #run_simulation_with_mutation()
-    for g in range(2):
+    for g in range(2000):
         generation = g + 1
         print("Generation:", generation)
         avg_win_rate.append(run_simulation_with_mutation())
@@ -303,7 +303,7 @@ if __name__ == "__main__":
         print("\n")
     
     
-    fig, (ax1, ax2) = plt.subplots(2000)
+    fig, (ax1, ax2) = plt.subplots(2)
     fig.suptitle("Training Progression: Pop Size: 200, No.Games: 50")
     ax1.plot(list(range(generation)), best_score_count, 'g', label = "Best Player Score")
     ax1.plot(list(range(generation)), worst_score_count, 'r', label = "Worst Player Score")
