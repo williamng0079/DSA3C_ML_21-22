@@ -8,8 +8,8 @@ from CompromiseGame import CompromiseGame, AbstractPlayer, GreedyPlayer, SmartGr
 # Also moving code into one place makes following the code easier.
 
 # problem encountered: during training, wins rates are often recurring decimals
-# casue of issue: number of game played (30)
-# solution: change the number of games from 30 to 50 for each player for future training 
+# casue of issue: number of game played (30) as x/30 often returns with recurring num
+# solution: change the number of games from 30 to 20 for each player for future training 
 # DONE
 
 
@@ -30,12 +30,12 @@ from CompromiseGame import CompromiseGame, AbstractPlayer, GreedyPlayer, SmartGr
 
 class NeuralNetwork():
 
-    def __init__(self, copy = False):
+    def __init__(self, blank = False):
         self._rewards = 0
         self._weights = []
         self._biases = []
 
-        if (not copy):                                              # For mutation, if its a copy (ie, for reinjecting the population), it will not generate a new sets of layers with random values
+        if (not blank):                                              # For mutation, if its a copy (ie, for reinjecting the population), it will not generate a new sets of layers with random values
             self.first_weightArray = np.random.rand(54, 27) * 2 - 1 # Create matrix for layers (consist of random numbers) from number of neurons x number of activators to simulate an weight matrix
             self._weights.append(self.first_weightArray)            # * 2 - 1 ensures some values are negative
             
@@ -92,21 +92,21 @@ class NeuralNetwork():
 
     def mutate(self, mutate_player = True):
         mutation_prob =  0.01                                   # set the probability of a mutation ocurring to 1%
-        new_player = NeuralNetwork(copy = True)                 # create new players with blank weights and biases
+        new_player = NeuralNetwork(blank = True)                 # create new players with blank weights and biases
 
     
             # copy the parameter of existing player
         for w in self._weights:                                 # iterate through the list of parent weights and apply mutation to generate new player
             w_mutationArray = np.random.rand(w.shape[0], w.shape[1]) # generate a matrix with the same weight dimension as the parent
-            apply_mutation = np.where(w_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2 , 0)  # mutation condition: any inside the random matrix is smaller than the mutation prob (0.01), change to that value will occur, otherwise sets the values in the matrix to 0 if the condition is not met
-            updated_w = w + apply_mutation                      # add the matrix of mutated value (mask) to the parent matrix
+            mutation_mask = np.where(w_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2 , 0)  # mutation condition: any inside the random matrix is smaller than the mutation prob (0.01), change to that value will occur, otherwise sets the values in the matrix to 0 if the condition is not met
+            updated_w = w + mutation_mask                      # add the matrix of mutated value (mask) to the parent matrix
 
             new_player._weights.append(updated_w)               # add the mutated weights to the new player
 
         for b in self._biases:                                  # mutate the bias value for the new player
             b_mutationArray = np.random.rand(b.shape[0], 1)     # same process as above
-            apply_b_mutation = np.where(b_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2, 0)
-            updated_b = b + apply_b_mutation
+            b_mutation_mask = np.where(b_mutationArray < mutation_prob, (np.random.rand() - 0.5)/2, 0)
+            updated_b = b + b_mutation_mask
 
             new_player._biases.append(updated_b)
 
@@ -134,8 +134,12 @@ class NeuralNetwork():
 
         return selectedmove
 
-    def getNN(self):
-        NN = [self._weights, self._biases]
+    def getNN_weights(self):
+        NN = self._weights
+        return NN
+    
+    def getNN_biases(self):
+        NN = self._biases
         return NN
 
 class Training():
@@ -144,7 +148,7 @@ class Training():
     def __init__(self, player):
         self.player = player
         self.totalReward = 0
-        self.nb_games = 50
+        self.nb_games = 20
         self.g = CompromiseGame(player, AbstractPlayer(), 30, 10)
 
 
@@ -203,16 +207,33 @@ def run_simulation_with_mutation():
     #print(sorted_fitness)
     print("Average win rate of the generation:", avg_fitness)
     print("Best player of this generation achieved:", str(sorted_fitness[-1]))
-    print("The best score was:" + str(population[0]._rewards) + "/50")
-    print("The worst score was:" + str(population[-1]._rewards) + "/50")
+    print("The best score was:" + str(population[0]._rewards) + "/20")
+    print("The worst score was:" + str(population[-1]._rewards) + "/20")
     #plt.hist(rewards, bins = number_of_NNplayer)
     #plt.plot(rewards)
     #plt.show()
     
-    if (avg_fitness >= 55):                                                             # write the best player genetic of a population when it reaches above a certain threshold
-        with open("best_player_NN.txt", "w") as bestGene:
-            json.dump(population[0].getNN() , bestGene)
+    if (avg_fitness >= 50):                                                             # write the best player genetic of a population when it reaches above a certain threshold
+        
+        with open("Best_NN_weights_1.txt", "w") as layer1_weightsFile:                  # Had to output each layer seperately, as by default the np.savetxt cuts out marjority of values
+            np.savetxt(layer1_weightsFile, np.asarray(population[0]._weights[0], dtype=object), fmt = "%s")
+            layer1_weightsFile.close()
+        
+        with open("Best_NN_weights_2.txt", "w") as layer2_weightsFile:
+            np.savetxt(layer2_weightsFile, np.asarray(population[0]._weights[1], dtype=object), fmt = "%s")
+            layer2_weightsFile.close()
+        
+        with open("Best_NN_weights_output.txt", "w") as output_weightsFile:
+            np.savetxt(output_weightsFile, np.asarray(population[0]._weights[2], dtype=object), fmt = "%s")
+            output_weightsFile.close()
+        
+        with open("Best_NN_biases.txt", "w") as BiasFile:
+            np.savetxt(BiasFile, np.asarray(population[0]._biases, dtype=object), fmt = "%s")
+            BiasFile.close()
+        
+            #json.dump(population[0].getNN_weights(), weightsFile)                      # json dump did not work
 
+    #print(population[0].getNN_biases())
     return avg_fitness
 
 
@@ -242,7 +263,7 @@ if __name__ == "__main__":
 
     restart_simulation()
     #run_simulation_with_mutation()
-    for g in range(15):
+    for g in range(10):
         generation = g + 1
         print("Generation:", generation)
         avg_winrate.append(run_simulation_with_mutation())
