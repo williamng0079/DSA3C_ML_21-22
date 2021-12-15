@@ -303,7 +303,7 @@ if __name__ == "__main__":
         print("\n")
     
     
-    fig, (ax1, ax2) = plt.subplots(2)
+    fig, (ax1, ax2) = plt.subplots(2000)
     fig.suptitle("Training Progression: Pop Size: 200, No.Games: 50")
     ax1.plot(list(range(generation)), best_score_count, 'g', label = "Best Player Score")
     ax1.plot(list(range(generation)), worst_score_count, 'r', label = "Worst Player Score")
