@@ -526,13 +526,13 @@ class CompromiseGame:
 
 
 if __name__ == "__main__":
-    pA = NNPlayer()
+    pA = NNPlayer(isACopy=False)
     pB = AbstractPlayer()
     g = CompromiseGame(pA, pB, 30, 1)
     #curses.wrapper(g.fancyPlay)
 
     score = [0,0,0]
-    for i in range(10):
+    for i in range(2):
         g.resetGame()
         res = g.play()
         if res[0] > res[1]:
