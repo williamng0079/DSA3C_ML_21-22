@@ -7,26 +7,33 @@ from CompromiseGame import CompromiseGame, AbstractPlayer, GreedyPlayer, SmartGr
 # This code has been reorganised by merging NNPlay.py to ensure mutation and population rearranging features work properly
 # Also moving code into one place makes following the code easier.
 
-# problem encountered: during training, wins rates are often recurring decimals
-# casue of issue: number of game played (30) as x/30 often returns with recurring num
-# solution: change the number of games from 30 to 20 for each player for future training 
-# DONE
+# problem encountered: 
+#       During training, wins rates are often recurring decimals
+#           Casue of issue: number of game played (30) as x/30 often returns with recurring num
+#           Solution: change the number of games from 30 to 50 for each player for future training, reduce pop size to 200 for speed
+#       DONE
+
+# Notes:  
+#       np.random.rand() ranges from 0 to 1
+     
+
+# observations: 
+#       Test training observ 2: avg population win rate progress: 88 at 1489th generation (pop size = 250, 30 games each)
+#       Softmax function in ouput layer often encounter overflow because values in .exp() are too large
+#           Cause of issue (maybe): previous activate are by leaky RelU, the maximum ouput values are not restricted
+#           Solution: no need, as its a warning message, calculation still happens              
 
 
-
-# observations: test training 2: avg population win rate progress: 88 at 1489th generation (pop size = 250, 30 games each)
-
-
-# Todo: Write best player genetic into a txt file
+# Todo: 
 #       Make best player file and do unittests 
-#       Restablish fitness func
-#       Write report
-#       Diplay more information on graph (include best and worst rate )
-#       Train against greedyplayer
-#       Experiment with initiating the bias value with zeros and mutate from it
+#       Write report    
+#       Write best player genetic into a txt file           DONE
+#       Restablish fitness func                             DONE: using win rate and score count to track fitness of a generation
+#       Diplay more information on graph (include best and worst rate ) DONE
+#       Train against greedyplayer                                      Future Objective
+#       Experiment with initiating the bias value with zeros and mutate from it     # Out of time, current mutation can reliabily achieve 87+
 
-# Notes: np.random.rand() ranges from 0 to 1
-#       
+ 
 
 class NeuralNetwork():
 
@@ -148,7 +155,7 @@ class Training():
     def __init__(self, player):
         self.player = player
         self.totalReward = 0
-        self.nb_games = 20
+        self.nb_games = 50
         self.g = CompromiseGame(player, AbstractPlayer(), 30, 10)
 
 
@@ -177,6 +184,16 @@ class Training():
 def restart_simulation():
     global population
     global number_of_NNplayer
+    global best_score_count
+    global worst_score_count
+    global best_win_rate
+    global worst_win_rate
+
+    best_score_count = []
+    worst_score_count = []
+    best_win_rate = []
+    worst_win_rate =[]
+
 
     for p in population:
         del(p)
@@ -190,6 +207,10 @@ def restart_simulation():
 def run_simulation_with_mutation():
     global population
     global number_of_NNplayer
+    global best_score_count
+    global worst_score_count
+    global best_win_rate
+    global worst_win_rate
 
     rewards = []
     indiv_fitnesses = []
@@ -203,17 +224,25 @@ def run_simulation_with_mutation():
     
     sorted_fitness = sorted(indiv_fitnesses)
     avg_fitness = sum(indiv_fitnesses) / number_of_NNplayer
+    sorted_scores = sorted(rewards)
+
 
     #print(sorted_fitness)
     print("Average win rate of the generation:", avg_fitness)
     print("Best player of this generation achieved:", str(sorted_fitness[-1]))
-    print("The best score was:" + str(population[0]._rewards) + "/20")
-    print("The worst score was:" + str(population[-1]._rewards) + "/20")
+    print("Worst player of this generation achieved:", str(sorted_fitness[0]))
+    print("The best score was:" + str(population[0]._rewards) + "/50")
+    print("The worst score was:" + str(population[-1]._rewards) + "/50")
     #plt.hist(rewards, bins = number_of_NNplayer)
     #plt.plot(rewards)
     #plt.show()
-    
-    if (avg_fitness >= 50):                                                             # write the best player genetic of a population when it reaches above a certain threshold
+
+    best_score_count.append(sorted_scores[-1])
+    worst_score_count.append(sorted_scores[0])
+    best_win_rate.append(sorted_fitness[-1])
+    worst_win_rate.append(sorted_fitness[0])
+
+    if (avg_fitness >= 85):                                                             # write the best player genetic of a population when it reaches above a certain threshold
         
         with open("Best_NN_weights_1.txt", "w") as layer1_weightsFile:                  # Had to output each layer seperately, as by default the np.savetxt cuts out marjority of values
             np.savetxt(layer1_weightsFile, np.asarray(population[0]._weights[0], dtype=object), fmt = "%s")
@@ -253,23 +282,37 @@ def rearrange_population():
     population = new_population + injected_players                  # combine the top 10% from previous gen and 90% of mutated players to form new population for the next generation
 
 if __name__ == "__main__":
-
     
     population = []
+    number_of_NNplayer = 200
+    best_score_count = []
+    worst_score_count = []
     
-    number_of_NNplayer = 250
-
-    avg_winrate = []
+    best_win_rate = []
+    avg_win_rate = []
+    worst_win_rate =[]
+    
 
     restart_simulation()
     #run_simulation_with_mutation()
-    for g in range(10):
+    for g in range(2):
         generation = g + 1
         print("Generation:", generation)
-        avg_winrate.append(run_simulation_with_mutation())
+        avg_win_rate.append(run_simulation_with_mutation())
         rearrange_population()
         print("\n")
-
-    plt.plot(list(range(generation)), avg_winrate, 'b', label = "Average Win Percentage")
-    plt.legend()
+    
+    
+    fig, (ax1, ax2) = plt.subplots(2)
+    fig.suptitle("Training Progression: Pop Size: 200, No.Games: 50")
+    ax1.plot(list(range(generation)), best_score_count, 'g', label = "Best Player Score")
+    ax1.plot(list(range(generation)), worst_score_count, 'r', label = "Worst Player Score")
+    ax1.legend(loc = 2,prop = {"size":7})
+    ax1.set_ylabel("Player Score")
+    ax2.plot(list(range(generation)), best_win_rate, 'g', label = "Best Player Win Rate")
+    ax2.plot(list(range(generation)), avg_win_rate, 'b', label = "Average Win Rate")
+    ax2.plot(list(range(generation)), worst_win_rate, 'r', label = "Worst Player Win Rate")
+    ax2.legend(loc = 2,prop = {"size":7})
+    ax2.set_ylabel("Win Rate %")
+    plt.xlabel("Generations")
     plt.show()
