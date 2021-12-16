@@ -245,7 +245,7 @@ def run_simulation_with_mutation():
     best_win_rate.append(sorted_fitness[-1])
     worst_win_rate.append(sorted_fitness[0])
 
-    if (avg_fitness >= 85):                                                             # write the best player genetic of a population when it reaches above a certain threshold
+    if (avg_fitness >= 91):                                                             # write the best player genetic of a population when it reaches above a certain threshold
         
         with open("Best_NN_weights_1.txt", "w") as layer1_weightsFile:                  # Had to output each layer seperately, as by default the np.savetxt cuts out marjority of values
             np.savetxt(layer1_weightsFile, np.asarray(population[0]._weights[0], dtype=object), fmt = "%s")
@@ -306,7 +306,7 @@ if __name__ == "__main__":
         rearrange_population()
         print("\n")
 
-        if generation_win >= 95:
+        if (generation_win >= 95):
             break
     
     fig, (ax1, ax2) = plt.subplots(2)
