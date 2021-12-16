@@ -306,7 +306,8 @@ if __name__ == "__main__":
         rearrange_population()
         print("\n")
 
-        if (generation_win >= 95):
+        if (generation_win >= 91):
+            print("... Target Fitness Reached, Terminate Training ...")
             break
     
     fig, (ax1, ax2) = plt.subplots(2)
