@@ -33,6 +33,7 @@ from CompromiseGame import CompromiseGame, AbstractPlayer, GreedyPlayer, SmartGr
 #       Train against greedyplayer                                      Future Objective
 #       Experiment with initiating the bias value with zeros and mutate from it     # Out of time, current mutation can reliabily achieve 87+
 
+#       Apply standard deviation of the population scores if time allows
  
 
 class NeuralNetwork():
