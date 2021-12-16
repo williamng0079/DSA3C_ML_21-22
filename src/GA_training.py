@@ -34,6 +34,8 @@ from CompromiseGame import CompromiseGame, AbstractPlayer, GreedyPlayer, SmartGr
 #       Experiment with initiating the bias value with zeros and mutate from it     # Out of time, current mutation can reliabily achieve 87+
 
 #       Apply standard deviation of the population scores if time allows
+#
+#       set up training with the ending condition of the avg win rate reaching 90+ %
  
 
 class NeuralNetwork():
@@ -296,13 +298,16 @@ if __name__ == "__main__":
 
     restart_simulation()
     #run_simulation_with_mutation()
-    for g in range(2000):
+    for g in range(5000):
         generation = g + 1
         print("Generation:", generation)
-        avg_win_rate.append(run_simulation_with_mutation())
+        generation_win = run_simulation_with_mutation()
+        avg_win_rate.append(generation_win)
         rearrange_population()
         print("\n")
-    
+
+        if generation_win >= 95:
+            break
     
     fig, (ax1, ax2) = plt.subplots(2)
     fig.suptitle("Training Progression: Pop Size: 200, No.Games: 50")
