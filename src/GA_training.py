@@ -298,7 +298,7 @@ if __name__ == "__main__":
 
     restart_simulation()
     #run_simulation_with_mutation()
-    for g in range(5000):
+    for g in range(10000):
         generation = g + 1
         print("Generation:", generation)
         generation_win = run_simulation_with_mutation()
