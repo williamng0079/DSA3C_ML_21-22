@@ -3,7 +3,7 @@ import sys
 import numpy as np
 sys.path.append("../src")
 # from sample import Layer
-from src import Layer
+from Player1921139 import Layer
 
 identity = np.vectorize(lambda x:x)
 

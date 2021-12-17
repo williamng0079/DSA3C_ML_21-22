@@ -5,8 +5,8 @@ import random
 sys.path.append("../src")
 # from sample import NNPlayer
 # from sample import NeuralNetwork
-from src import NNPlayer
-from src import NeuralNetwork
+from Player1921139 import NNPlayer
+from Player1921139 import NeuralNetwork
 
 identity = np.vectorize(lambda x:x)
 
