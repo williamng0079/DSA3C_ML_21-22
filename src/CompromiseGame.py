@@ -1,10 +1,11 @@
+from abc import abstractclassmethod
 import curses
 import random
 import re
 import math
 import matplotlib.pyplot as plt
 
-from NNPlay import NNPlayer
+from Player1921139 import NNPlayer
 
 class AbstractPlayer:
     def play(self, myState, oppState, myScore, oppScore, turn, length, nPips):
@@ -526,13 +527,13 @@ class CompromiseGame:
 
 
 if __name__ == "__main__":
-    pA = NNPlayer(isACopy=False)
+    pA = NNPlayer()
     pB = AbstractPlayer()
-    g = CompromiseGame(pA, pB, 30, 1)
+    g = CompromiseGame(pA, pB, 30, 10)
     #curses.wrapper(g.fancyPlay)
 
     score = [0,0,0]
-    for i in range(2):
+    for i in range(100):
         g.resetGame()
         res = g.play()
         if res[0] > res[1]:

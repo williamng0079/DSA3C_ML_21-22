@@ -85,7 +85,7 @@ class NeuralNetwork():
         output = output + self._biases[0]
         output = self.Leaky_ReLU(output)
 
-        output = np.matmul(self._weights[1], output)            # calculate the between hidden layers
+        output = np.matmul(self._weights[1], output)            # calculate between hidden layers
         output = output + self._biases[1]
         output = self.Leaky_ReLU(output)
 
@@ -306,7 +306,7 @@ if __name__ == "__main__":
         rearrange_population()
         print("\n")
 
-        if (generation_win >= 91):
+        if (generation_win >= 92):
             print("... Target Fitness Reached, Terminate Training ...")
             break
     
